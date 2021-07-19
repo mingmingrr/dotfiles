@@ -1,0 +1,7 @@
+segments:
+  left:
+    - type: string
+      contents: ''
+      width: auto
+      highlight_groups:
+        - prompt

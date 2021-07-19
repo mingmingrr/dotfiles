@@ -1,0 +1,5 @@
+segment_data:
+  line_percent:
+    args:
+      gradient: true
+    after: '%'
