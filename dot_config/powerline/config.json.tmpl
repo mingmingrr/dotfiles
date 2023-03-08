@@ -1,0 +1,52 @@
+{{/* vim: set ft=yaml: */}}
+{{output "bash" "-c" (printf "sed '1,3d;$d' %s | yq --tab ."
+  (joinPath .chezmoi.sourceDir .chezmoi.sourceFile | quote))}}{{/*
+common:
+  term_truecolor: false
+  log_file: [ null, ~/.config/powerline/log ]
+  log_level: WARNING
+  log_format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  paths: [ ~/.config/powerline/segments ]
+ext:
+  ghci:
+    colorscheme: default
+    theme: prompt
+    local_themes:
+      cont: cont
+  ipython:
+    colorscheme: default
+    theme: in
+    local_themes:
+      rewrite: rewrite
+      out: out
+      in2: in2
+  pdb:
+    colorscheme: default
+    theme: default
+  shell: &shell
+    colorscheme: default
+    theme: default
+    local_themes:
+      continuation: continuation
+      select: select
+  xonsh: *shell
+  tmux:
+    colorscheme: default
+    theme: default
+  vim:
+    colorscheme: default
+    theme: default
+    local_themes:
+      __tabline__: tabline
+      cmdwin: cmdwin
+      help: help
+      quickfix: quickfix
+      powerline.matchers.vim.plugin.nerdtree.nerdtree: plugin_nerdtree
+      powerline.matchers.vim.plugin.commandt.commandt: plugin_commandt
+      powerline.matchers.vim.plugin.gundo.gundo: plugin_gundo
+      powerline.matchers.vim.plugin.gundo.gundo_preview: plugin_gundo-preview
+  wm:
+    colorscheme: default
+    theme: default
+    update_interval: 2
+*/}}

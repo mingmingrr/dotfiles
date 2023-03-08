@@ -1,0 +1,31 @@
+{{/* vim: set ft=yaml: */}}
+{{output "bash" "-c" (printf "sed '1,3d;$d' %s | yq --tab ."
+  (joinPath .chezmoi.sourceDir .chezmoi.sourceFile | quote))}}{{/*
+name: Default color scheme for shell prompts
+groups:
+  hostname:
+    fg: brightyellow
+    bg: mediumorange
+    attrs: []
+  environment:
+    fg: white
+    bg: darkestgreen
+    attrs: []
+  mode:
+    fg: darkestgreen
+    bg: brightgreen
+    attrs:
+      - bold
+  attached_clients:
+    fg: white
+    bg: darkestgreen
+    attrs: []
+mode_translations:
+  vicmd:
+    groups:
+      mode:
+        fg: darkestcyan
+        bg: white
+        attrs:
+          - bold
+*/}}

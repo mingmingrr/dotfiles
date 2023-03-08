@@ -1,0 +1,10 @@
+{{/* vim: set ft=yaml: */}}
+{{output "bash" "-c" (printf "sed '1,3d;$d' %s | yq --tab ."
+  (joinPath .chezmoi.sourceDir .chezmoi.sourceFile | quote))}}{{/*
+groups:
+  stack_depth:
+    fg: gray1
+    bg: gray10
+    attrs:
+      - bold
+*/}}

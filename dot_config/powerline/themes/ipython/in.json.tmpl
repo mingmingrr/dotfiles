@@ -1,0 +1,19 @@
+{{/* vim: set ft=yaml: */}}
+{{output "bash" "-c" (printf "sed '1,3d;$d' %s | yq --tab ."
+  (joinPath .chezmoi.sourceDir .chezmoi.sourceFile | quote))}}{{/*
+segments:
+  left:
+    - function: powerline.segments.common.env.virtualenv
+      priority: 10
+    - type: string
+      contents: In [
+      draw_soft_divider: false
+      highlight_groups:
+        - prompt
+    - function: powerline.segments.ipython.prompt_count
+      draw_soft_divider: false
+    - type: string
+      contents: ']'
+      highlight_groups:
+        - prompt
+*/}}
