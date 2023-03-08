@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ $# -eq 0 ]; then
+	prog=cat
+else
+	prog="$@"
+fi
+
+strip='sed s#/nix/store/[0-9a-z]*-#/📁#'
+unbuffer $prog > >($strip) 2> >($strip 1>&2)
+exit $?

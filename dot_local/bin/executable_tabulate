@@ -1,0 +1,137 @@
+#!/usr/bin/env -S python3 -S
+
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-o', '--order',
+	metavar='dir', choices=('row','col'), default='col',
+	help='order of output (row|col)')
+parser.add_argument('-a', '--align',
+	metavar='side', choices=('left','right','center'), default='left',
+	help='alignment of columns (left|right|center)')
+parser.add_argument('-f', '--fill',
+	metavar='char', default='\xA0',
+	help='character used for alignment (default nbsp)')
+parser.add_argument('-w', '--column-width',
+	metavar='num', type=int, default=None, dest='cwidth',
+	help='width of each column (default 19)')
+parser.add_argument('-c', '--column-count',
+	metavar='num', type=int, default=None, dest='ccount',
+	help='number of columns (default variable)')
+parser.add_argument('-t', '--table-width',
+	metavar='num', type=int, default=None, dest='twidth',
+	help='width of all columns (default $COLUMNS)')
+parser.add_argument('-s', '--separator',
+	metavar='str', default=' ',
+	help='columns separator for table (default space)')
+parser.add_argument('-e', '--ellipsis',
+	metavar='str', default='…',
+	help='appended for truncated names (default "…")')
+parser.add_argument('--skip-empty',
+	action='store_const', const=True, dest='skip', default=False)
+parser.add_argument('--no-skip-empty',
+	action='store_const', const=False, dest='skip')
+args = parser.parse_args()
+
+import unicodedata
+
+def width(char):
+	w = unicodedata.east_asian_width(char)
+	if w == 'F' or w == 'W':
+		return 2
+	return 1
+
+args.swidth = sum(map(width, args.separator))
+args.ewidth = sum(map(width, args.ellipsis))
+
+if args.twidth is None and (args.cwidth is None or args.ccount is None):
+	try:
+		import shutil
+		args.twidth = shutil.get_terminal_size().columns
+	except IOError:
+		args.twidth = 80
+
+if args.ccount is None:
+	args.ccount = (args.twidth + args.swidth) // ((args.cwidth or 19) + args.swidth)
+
+if args.cwidth is None:
+	args.cwidth = (args.twidth + args.swidth) // args.ccount - args.swidth
+
+import re
+
+regex = re.compile(r'''
+	(?:\x9B|\x1B\[)
+	[\x30-\x3F]*
+	[\x20-\x2F]*
+	[\x40-\x7F]
+''', re.X)
+
+def split(chars):
+	mat, last = None, 0
+	for mat in regex.finditer(chars):
+		if mat.start() > last:
+			yield False, chars[last:mat.start()]
+		yield True, mat.group(0)
+		last = mat.end()
+	if mat is None:
+		yield False, chars
+	elif mat.end() < len(chars):
+		yield False, chars[mat.end():]
+
+column, padding = 0, 0
+
+def output(chars):
+	global column
+	global padding
+	if column > 0:
+		print(args.fill * padding, end='')
+		print(args.separator, end='')
+	padding, segments = 0, list(split(chars))
+	length = sum(sum(map(width, seg)) for ansi, seg in segments if not ansi)
+	if length <= args.cwidth:
+		if args.align == 'right':
+			print(args.fill * (args.cwidth - length), end='')
+		elif args.align == 'center':
+			print(args.fill * ((args.cwidth - length) // 2), end='')
+		print(chars, end='')
+		if args.align == 'left':
+			padding = args.cwidth - length
+		elif args.align == 'center':
+			padding = (args.cwidth - length + 1) // 2
+	else:
+		length = args.cwidth - args.ewidth
+		for ansi, seg in segments:
+			if ansi:
+				print(seg, end='')
+			elif length >= 0:
+				for char in seg:
+					length -= width(char)
+					if length < 0: break
+					print(char, end='')
+				if length < 0: 
+					print(args.ellipsis, end='')
+	column += 1
+	if column == args.ccount:
+		column = 0
+		print()
+	#  else:
+		#  print(end='', flush=True)
+
+import sys
+
+if args.order == 'col':
+	lines = [line.rstrip('\r\n') for line in sys.stdin]
+	rcount, cols = (len(lines) + args.ccount - 1) // args.ccount, []
+	for row in range(rcount):
+		for col in range(args.ccount):
+			idx = row + col * rcount
+			if idx < len(lines):
+				output(lines[idx])
+			else:
+				output('')
+else:
+	for line in sys.stdin:
+		output(line.rstrip('\r\n'))
+
+if column > 0:
+	print()
