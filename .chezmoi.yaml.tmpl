@@ -1,9 +1,14 @@
 data:
   {}
 template:
-  options: [ missingkey=error ]
+  options:
+    - missingkey=error
 merge:
   command: nvim
-  args: [ '-d' ]
+  args:
+    - '-d'
+    - '{{ "{{" }} .Destination {{ "}}" }}'
+    - '{{ "{{" }} .Source {{ "}}" }}'
+    - '{{ "{{" }} .Target {{ "}}" }}'
 edit:
   command: nvim
