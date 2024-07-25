@@ -1,0 +1,59 @@
+{{/* vim: set ft=yaml: */}}
+{{output "bash" "-c" (printf "sed '1,3d;$d' %s | yq --tab ."
+  (joinPath .chezmoi.sourceDir .chezmoi.sourceFile | quote))}}{{/*
+suggest.noselect: true,
+languageserver:
+  clangd:
+    command: clangd
+    args: []
+    filetypes:
+      - c
+      - cpp
+    rootPatterns:
+      - .git
+      - .clangd
+      - compile_flags.txt
+      - compile_commands.json
+  haskell:
+    command: haskell-language-server-wrapper
+    args:
+      - --lsp
+    filetypes:
+      - haskell
+      - lhaskell
+    rootPatterns:
+      - '*.cabal'
+      - stack.yaml
+      - cabal.project
+      - package.yaml
+      - hie.yaml
+    settings:
+      haskell:
+        checkProject: false
+        plugin:
+          ghcide-completions:
+            config:
+              snippetsOn: false
+  typescript:
+    command: typescript-language-server
+    args:
+      - --stdio
+    filetypes:
+      - javascript
+      - typescript
+    rootPatterns:
+      - node_modules
+      - package.json
+  # python:
+    # command: python-language-server
+    # filetypes:
+      # - python
+  kerboscript:
+    command: kls
+    args:
+      - --stdio
+    filetypes:
+      - kerboscript
+    rootPatterns:
+      - ksconfig.json
+*/}}
