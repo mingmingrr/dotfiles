@@ -1,0 +1,19 @@
+#!/usr/bin/env -S python3 -S
+
+import os
+import shutil
+import argparse
+import functools
+import operator
+
+parser = argparse.ArgumentParser()
+parser.add_argument('command')
+parser.add_argument('--mode', default='FX', type=lambda xs:
+	functools.reduce(operator.or_, (getattr(os, x.upper() + '_OK') for x in xs), 0))
+parser.add_argument('--path', default=os.environ.get('PATH', os.defpath))
+args = parser.parse_args()
+
+file = shutil.which(args.command, mode=args.mode, path=args.path)
+paths = args.path.split(os.pathsep)
+paths = paths[paths.index(os.path.dirname(file)) + 1 :]
+print(shutil.which(args.command, mode=args.mode, path=os.pathsep.join(paths)))
