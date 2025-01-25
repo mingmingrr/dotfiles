@@ -68,3 +68,14 @@ class quitall_scope(ranger.api.commands.Command):
 	def execute(self):
 		_exit_no_work(self)
 
+class set_env(ranger.api.commands.Command):
+	"""
+	:set_env <setting> [<envvar> <envval> <value>]* <fallback>\n
+	Run `:set x y` based on environment variables
+	"""
+	def execute(self):
+		setting, *values, fallback = shlex.split(self.rest(1))
+		for k, v, x in zip(*([iter(values)]*3)):
+			if os.getenv(k) == v: break
+		else: x = fallback
+		self.fm.settings[setting] = x
