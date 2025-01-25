@@ -1,7 +1,10 @@
 {{/* vim: set ft=yaml: */}}
 {{output "bash" "-c" (printf "sed '1,3d;$d' %s | yq --tab ."
   (joinPath .chezmoi.sourceDir .chezmoi.sourceFile | quote))}}{{/*
-suggest.noselect: true,
+suggest.noselect: "true"
+coc.preferences.jumpCommand: pedit
+python.linting.enabled: "false"
+inlayHint.enable: "false"
 languageserver:
   clangd:
     command: clangd
