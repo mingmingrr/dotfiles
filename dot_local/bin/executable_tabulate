@@ -1,6 +1,23 @@
 #!/usr/bin/env -S python3 -S
 
+from __future__ import annotations
+from typing import *
+
 import argparse
+
+class Options(argparse.Namespace):
+	order: Literal['row', 'col']
+	align: Literal['left', 'center', 'right']
+	fill: str
+	cwidth: Optional[int]
+	ccount: Optional[int]
+	twidth: Optional[int]
+	swidth: int
+	ewidth: int
+	separator: str
+	ellipsis: str
+	skip: bool
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', '--order',
@@ -31,11 +48,11 @@ parser.add_argument('--skip-empty',
 	action='store_const', const=True, dest='skip', default=False)
 parser.add_argument('--no-skip-empty',
 	action='store_const', const=False, dest='skip')
-args = parser.parse_args()
+args: Options = parser.parse_args(namespace=Options())
 
 import unicodedata
 
-def width(char):
+def width(char: str) -> int:
 	w = unicodedata.east_asian_width(char)
 	if w == 'F' or w == 'W':
 		return 2
@@ -44,18 +61,17 @@ def width(char):
 args.swidth = sum(map(width, args.separator))
 args.ewidth = sum(map(width, args.ellipsis))
 
-if args.twidth is None and (args.cwidth is None or args.ccount is None):
-	try:
-		import shutil
-		args.twidth = shutil.get_terminal_size().columns
-	except IOError:
-		args.twidth = 80
-
-if args.ccount is None:
-	args.ccount = (args.twidth + args.swidth) // ((args.cwidth or 19) + args.swidth)
-
-if args.cwidth is None:
-	args.cwidth = (args.twidth + args.swidth) // args.ccount - args.swidth
+if args.cwidth is None or args.ccount is None:
+	if args.twidth is None:
+		try:
+			import shutil
+			args.twidth = shutil.get_terminal_size().columns
+		except IOError:
+			args.twidth = 80
+	if args.ccount is None:
+		args.ccount = (args.twidth + args.swidth) // ((args.cwidth or 19) + args.swidth)
+	if args.cwidth is None:
+		args.cwidth = (args.twidth + args.swidth) // args.ccount - args.swidth
 
 import re
 
@@ -78,22 +94,25 @@ def split(chars):
 	elif mat.end() < len(chars):
 		yield False, chars[mat.end():]
 
+import sys
+
 column, padding = 0, 0
 
 def output(chars):
 	global column
 	global padding
 	if column > 0:
-		print(args.fill * padding, end='')
-		print(args.separator, end='')
+		sys.stdout.write(args.fill * padding)
+		sys.stdout.write(args.separator)
 	padding, segments = 0, list(split(chars))
 	length = sum(sum(map(width, seg)) for ansi, seg in segments if not ansi)
+	assert args.cwidth is not None
 	if length <= args.cwidth:
 		if args.align == 'right':
-			print(args.fill * (args.cwidth - length), end='')
+			sys.stdout.write(args.fill * (args.cwidth - length))
 		elif args.align == 'center':
-			print(args.fill * ((args.cwidth - length) // 2), end='')
-		print(chars, end='')
+			sys.stdout.write(args.fill * ((args.cwidth - length) // 2))
+		sys.stdout.write(chars)
 		if args.align == 'left':
 			padding = args.cwidth - length
 		elif args.align == 'center':
@@ -102,22 +121,19 @@ def output(chars):
 		length = args.cwidth - args.ewidth
 		for ansi, seg in segments:
 			if ansi:
-				print(seg, end='')
+				sys.stdout.write(seg)
 			elif length >= 0:
 				for char in seg:
 					length -= width(char)
 					if length < 0: break
-					print(char, end='')
-				if length < 0: 
-					print(args.ellipsis, end='')
+					sys.stdout.write(char)
+				if length < 0:
+					sys.stdout.write(args.ellipsis)
 	column += 1
 	if column == args.ccount:
 		column = 0
-		print()
-	#  else:
-		#  print(end='', flush=True)
-
-import sys
+		sys.stdout.write('\n')
+		sys.stdout.flush()
 
 if args.order == 'col':
 	lines = [line.rstrip('\r\n') for line in sys.stdin]
@@ -134,4 +150,5 @@ else:
 		output(line.rstrip('\r\n'))
 
 if column > 0:
-	print()
+	sys.stdout.write('\n')
+	sys.stdout.flush()
