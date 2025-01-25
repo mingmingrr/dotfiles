@@ -31,11 +31,11 @@ function powerline-setup
 		end
 		function _powerline_update --on-variable POWERLINE_COMMAND
 			set -l addargs "--last-exit-code=\$status"
-			if set -q pipestatus
-				set addargs "$addargs --last-pipe-status=\"\$pipestatus\""
-			else
+			# if set -q pipestatus
+				# set addargs "$addargs --last-pipe-status=\"\$pipestatus\""
+			# else
 				set addargs "$addargs --last-pipe-status=\$status"
-			end
+			# end
 			set -l addargs "$addargs --jobnum=(jobs -p | wc -l)"
 			if set -q fish_pid
 				set addargs "$addargs --renderer-arg=client_id=\$fish_pid"
