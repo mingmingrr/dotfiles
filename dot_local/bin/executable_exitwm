@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+set -e -o pipefail
+
+action="$(rofi -dmenu -match regex <<EOF
+l: lock
+c: close
+s: sleep
+h: hibernate
+L: Logoff
+S: Shutdown
+R: Restart
+EOF
+)"
+
+case "$action" in
+  "l: lock")
+    xscreensaver-command -lock
+    ;;
+  "c: close")
+    xscreensaver-command -lock
+    xscreensaver-command -suspend
+    ;;
+  "s: sleep")
+    xscreensaver-command -lock || true
+    systemctl suspend
+    ;;
+  "h: hibernate")
+    xscreensaver-command -lock || true
+    systemctl hibernate
+    ;;
+  "L: Logoff")
+    "$@"
+    ;;
+  "S: Shutdown")
+    systemctl poweroff
+    ;;
+  "R: Restart")
+    systemctl reboot
+    ;;
+  *)
+    exit 1
+esac
