@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -ex -o pipefail
+
+args=()
+while test "$#" -gt 0; do
+	case $1 in
+		--focus)
+			args+=(-i "$(xdotool getactivewindow)")
+			shift
+			;;
+		--crop)
+			crop=1
+			shift
+			;;
+		*)
+			args+=("$1")
+			shift
+			;;
+	esac
+done
+
+path="$HOME/Pictures/Screenshots/$(date --iso-8601=seconds).png"
+maim --hidecursor "${args[@]}" "$path"
+
+if test -n "$crop"; then
+	feh --geometry "$(identify -ping -format '%wx%h+0+0' "$path")" "$path" &
+	path="$(dirname "$path")/$(basename "$path" .png)-crop.png"
+	maim --hidecursor "${args[@]}" --select "$path"
+	kill -TERM %1
+fi
+
+link="$HOME/last-screenshot.png"
+if test -h "$link"; then
+	unlink $link
+fi
+ln -s "$path" "$link"
+
+xclip -selection clipboard -t image/png -i "$path" & disown
