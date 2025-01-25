@@ -6,6 +6,7 @@ from powerline.theme import requires_segment_info, requires_filesystem_watcher
 import subprocess
 import os
 import stat
+import hashlib
 
 @requires_segment_info
 def environment(pl, segment_info, variable=None, contents=None):
@@ -34,6 +35,7 @@ def python(pl, segment_info, create_watcher, code=None):
 	:param code: A Python code block to be passed to :func:`exec`
 	:type code: string
 	'''
+	assert code is not None
 	scope = {'pl': pl,
 		'segment_info': segment_info,
 		'create_watcher': create_watcher}
@@ -48,6 +50,7 @@ def shell(pl, segment_info, code=None):
 	:param code: An executable passed to be executed by the system
 	:type code: string
 	'''
+	assert code is not None
 	cache_dir = os.path.join(os.environ.get('XDG_DATA_HOME',
 		os.path.join(os.path.expanduser('~'),
 			'.local', 'share')), 'powerline', 'shell_cache')
@@ -68,6 +71,7 @@ def command(pl, segment_info, args=None):
 	:param code: An executable passed to be executed by the system
 	:type code: string
 	'''
+	assert args is not None
 	return subprocess.run(args,
 		check=True,
 		capture_output=True,
@@ -91,10 +95,12 @@ def colored(pl, segment_info, create_watcher, code=None, highlight=None):
 		return None
 	if isinstance(result, str):
 		result = [{'contents': result}]
-		colored_item, = {
-			'highlight_groups': highlight or ['colored_gradient'],
-			'gradient_level': ((150 + 12500**0.5) *
-				hash(segment_info.get('client_id', 0))) % 100
-		}
-		return [dict(colored_item, *item) for item in result]
+	if isinstance(result, dict):
+		result = [{'contents': result}]
+	return [dict(
+		highlight_groups=highlight or ['colored_gradient'],
+		gradient_level=((150 + 12500**0.5)
+			* hash(segment_info.get('client_id', 0))) % 100,
+		**item
+	) for item in result]
 
