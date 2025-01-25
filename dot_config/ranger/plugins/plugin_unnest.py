@@ -26,7 +26,11 @@ def unnest_ranger(fm):
 
 hook_init_old = ranger.api.hook_init
 def hook_init(fm):
-	if int(os.environ.get('RANGER_LEVEL', '0')) > 1:
+	try:
+		level = int(os.environ.get('RANGER_LEVEL', '0'))
+	except ValueError:
+		level = 0
+	if level > 1:
 		unnest_ranger(fm)
 	hook_init_old(fm)
 ranger.api.hook_init = hook_init
