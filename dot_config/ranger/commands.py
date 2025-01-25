@@ -4,8 +4,11 @@ import os
 import tempfile
 import shlex
 import stat
+import textwrap
 
 import ranger.api.commands
+
+batch_cache = {}
 
 class batch(ranger.api.commands.Command):
 	''':batch <flags=w>\n
@@ -19,16 +22,21 @@ class batch(ranger.api.commands.Command):
 		if not self.flags: self.flags = 'w'
 	def execute(self):
 		from ranger.container.file import File
-		contents = b'#!/usr/bin/env bash\nset -o errexit\nset -o xtrace\n'
+		cache_key = tuple(sorted(file.path
+			for file in self.fm.thistab.get_selection()))
+		contents = ['#!/usr/bin/env bash', 'set -o errexit', 'set -o xtrace']
 		for file in self.fm.thistab.get_selection():
-			file = shlex.quote(file.relative_path)
-			contents += (file + '\n').encode('utf-8', 'surrogateescape')
+			contents.append(shlex.quote(file.relative_path))
+		contents.append(textwrap.indent(batch_cache.get(cache_key, ''), '# '))
+		contents = '\n'.join(contents)
+		with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as script:
+			script.write(contents)
 		try:
-			with tempfile.NamedTemporaryFile(mode='wb', suffix='.sh', delete=False) as script:
-				script.write(contents)
 			self.fm.execute_file([File(script.name)], app='editor')
-			with open(script.name, 'rb') as reading:
-				if reading.read() == contents: return
+			with open(script.name, 'r') as reading:
+				modified = reading.read()
+				if modified == contents: return
+			batch_cache[cache_key] = modified
 			os.chmod(script.name, os.stat(script.name).st_mode | stat.S_IEXEC)
 			self.fm.run([script.name], flags=self.flags)
 		finally:
