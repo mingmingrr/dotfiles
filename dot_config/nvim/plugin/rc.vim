@@ -14,7 +14,7 @@ set background=dark
 
 let g:sonokai_enable_italic = 1
 
-for scheme in ['blep', 'sonokai', 'monokai-black', 'monokai', 'molokai']
+for scheme in ['onekai', 'blep', 'sonokai', 'monokai-black', 'monokai', 'molokai']
 	try
 		execute 'colorscheme' scheme
 		break
@@ -36,6 +36,7 @@ set wrap
 " set textwidth=500
 set scrolloff=3
 set sidescrolloff=6
+" let &previewheight=winheight(0)/2
 
 set autoindent
 set nocindent
@@ -95,6 +96,10 @@ set foldlevelstart=20
 
 set signcolumn=yes
 
+set diffopt+=iwhite
+
+set shell=/bin/sh
+
 autocmd FileType haskell setlocal expandtab
 autocmd FileType cabal setlocal expandtab
 autocmd FileType purescript setlocal expandtab
@@ -105,6 +110,9 @@ autocmd Filetype happy syntax include @haskell syntax/haskell.vim |
 	\ syntax region haskellSnip matchgroup=Snip start='^{$' end='^}$' contains=@haskell
 autocmd Filetype happy syntax include @haskell syntax/haskell.vim |
 	\ syntax region haskellSnip matchgroup=Snip start='{% ' end='}$' contains=@haskell
+autocmd FileType pug setlocal nowrap
+autocmd FileType qf setlocal nowrap |
+	\ nnoremap <buffer> <Enter> <Enter><C-W><C-P>
 
 set indentexpr=
 autocmd BufEnter * set indentexpr=
@@ -128,6 +136,7 @@ let g:NERDCustomDelimiters = {
 	\ 'python' : { 'left': '#' },
 	\ 'xdc' : { 'left': '#' },
 	\ 'kerboscript' : { 'left': '//' },
+	\ 'cosini' : { 'left': '#' },
 \ }
 
 " let g:deoplete#enable_at_startup = 1
@@ -135,10 +144,6 @@ let g:NERDCustomDelimiters = {
 
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_auto_colors = 0
-
-let g:indent_blankline_max_indent_increase            = 1
-let g:indent_blankline_show_trailing_blankline_indent = v:false
-let g:indent_blankline_show_end_of_line               = v:false
 
 let g:haskell_enable_quantification = 1
 let g:haskell_enable_recursivedo = 1
@@ -162,16 +167,18 @@ let g:haskell_xml           = 0
 let g:haskell_hsp           = 0
 let g:haskell_tabular       = 0
 
+let g:syntastic_auto_loc_list        = 0
 let g:syntastic_python_python_exec = 'python3'
 let g:syntastic_cpp_compiler_options = ' -std=c++20'
 let g:syntastic_mode_map = {
 	\ 'mode': 'active',
 	\ 'passive_filetypes': [ 'c', 'cpp' ] }
+let g:syntastic_python_checkers = []
 
 let g:rainbow_active = 1
 
+map <F1> <nop>
 map <F9> :Vista!!<CR>
-
 map <F10> :echo 'hi<' . synIDattr(synID(line('.'),col('.'),1),'name')
 \ . '> trans<' . synIDattr(synID(line('.'),col('.'),0),'name') . '> lo<'
 \ . synIDattr(synIDtrans(synID(line('.'),col('.'),1)),'name') . '>'<CR>
@@ -179,11 +186,12 @@ map <F10> :echo 'hi<' . synIDattr(synID(line('.'),col('.'),1),'name')
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
 
-xmap gD :call CocActionAsync('jumpDefinition')<CR>
 nmap gD :call CocActionAsync('jumpDefinition')<CR>
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
 
 nnoremap <silent> K :call ShowDocumentation()<CR>
-
 function! ShowDocumentation()
 	if CocAction('hasProvider', 'hover')
 		call CocActionAsync('doHover')
@@ -193,4 +201,9 @@ function! ShowDocumentation()
 endfunction
 
 cnoremap <C-A> <Home>
+
+try
+	luafile rc.lua
+catch
+endtry
 
