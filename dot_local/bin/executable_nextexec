@@ -1,19 +1,35 @@
-#!/usr/bin/env -S python3 -S
+#!/usr/bin/env bash
 
-import os
-import shutil
-import argparse
-import functools
-import operator
+if [[ -z "$1" ]] || [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
+	echo "usage: $0 name [path]"
+	exit 0
+fi
 
-parser = argparse.ArgumentParser()
-parser.add_argument('command')
-parser.add_argument('--mode', default='FX', type=lambda xs:
-	functools.reduce(operator.or_, (getattr(os, x.upper() + '_OK') for x in xs), 0))
-parser.add_argument('--path', default=os.environ.get('PATH', os.defpath))
-args = parser.parse_args()
+prog="$(basename "$1")"
+[[ "$1" == */* ]] && state=2 || state=1
 
-file = shutil.which(args.command, mode=args.mode, path=args.path)
-paths = args.path.split(os.pathsep)
-paths = paths[paths.index(os.path.dirname(file)) + 1 :]
-print(shutil.which(args.command, mode=args.mode, path=os.pathsep.join(paths)))
+IFS=: read -r -d '' -a paths < <(printf '%s:\0' "${2:-$PATH}")
+for path in "${paths[@]}"; do
+	if [[ -x "$path/$prog" ]]; then
+		case $state in
+			1)
+				prev="$path"
+				state=3
+				;;
+			2)
+				if [[ "$path" = $(dirname "$1") ]]; then
+					prev="$path"
+					state=3
+				fi
+				;;
+			3)
+				if [[ "$path" != "$prev" ]]; then
+					echo "$path/$prog"
+					exit 0
+				fi
+				;;
+		esac
+	fi
+done
+
+exit "$state"

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S python3 -S
+#!/usr/bin/env -S python3 -S -OO
 
 from __future__ import annotations
 from typing import *
