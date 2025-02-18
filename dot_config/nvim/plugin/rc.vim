@@ -201,6 +201,7 @@ function! ShowDocumentation()
 endfunction
 
 cnoremap <C-A> <Home>
+cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
 
 try
 	luafile rc.lua
