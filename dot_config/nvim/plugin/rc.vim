@@ -81,7 +81,8 @@ set clipboard=unnamedplus
 set completeopt=menuone,preview,noselect,noinsert
 set autoread
 
-set noswapfile
+set directory^=$HOME/.local/share/vimswap
+set swapfile
 set nobackup
 set nowritebackup
 
@@ -176,6 +177,9 @@ let g:syntastic_mode_map = {
 let g:syntastic_python_checkers = []
 
 let g:rainbow_active = 1
+
+nnoremap <silent> } :<C-u>execute "keepjumps norm! " . v:count1 . "}"<CR>
+nnoremap <silent> { :<C-u>execute "keepjumps norm! " . v:count1 . "{"<CR>
 
 map <F1> <nop>
 map <F9> :Vista!!<CR>
