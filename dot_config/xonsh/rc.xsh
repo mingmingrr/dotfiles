@@ -10,8 +10,8 @@ $XONSH_HISTORY_BACKEND        = 'sqlite'
 $XONSH_HISTORY_MATCH_ANYWHERE = True
 $MULTILINE_PROMPT             = ' '
 # $SUBSEQUENCE_PATH_COMPLETION  = False
-$XONSH_STDERR_PREFIX          = '{RED}'
-$XONSH_STDERR_POSTFIX         = '{RESET}'
+# $XONSH_STDERR_PREFIX          = '{RED}'
+# $XONSH_STDERR_POSTFIX         = '{RESET}'
 # $UPDATE_OS_ENVIRON            = False
 $XONSH_SHOW_TRACEBACK         = True
 
@@ -65,6 +65,8 @@ def _run_config(*_, **__):
 	$fzf_history_binding = 'c-r'
 	xontrib load fzf-widgets
 	xontrib load term_integration
+	xontrib load psub
+	xontrib load broot
 
 	# $SHELL = sys.argv[0]
 	# $SHELL = shutil.which('xonsh')
@@ -149,74 +151,19 @@ def _run_config(*_, **__):
 # _run_config()
 events.on_ptk_create(_run_config)
 
-@aliases.register('psub')
-def _psub(args, stdin=None, stdout=None, stderr=None):
-	import argparse
-	import tempfile
-	import subprocess
-	import os
-	import shutil
-	from xonsh.events import events
-
-	parser = argparse.ArgumentParser(prog='psub')
-	parser.add_argument('-f', '--file', dest='fifo',
-		action='store_false', default=False)
-	parser.add_argument('-F', '--fifo', dest='fifo',
-		action='store_true', default=False)
-	parser.add_argument('-s', '--suffix', default='')
-	args = parser.parse_args(args)
-
-	if stdin is None:
-		print('psub: no stdin', file=stderr)
-		return 1
-	if stdout is None:
-		print('psub: no stdout', file=stderr)
-		return 1
-
-	tempdir = None
-	@events.on_postcommand
-	def cleanup(cmd, rtn, out, ts):
-		print('cleanup', repr(cmd), rtn, ts, tempdir, file=stderr)
-		if tempdir is not None:
-			shutil.rmtree(tempdir)
-		events.on_postcommand.remove(cleanup)
-	tempdir = tempfile.mkdtemp(prefix='xonsh-psub.')
-	filepath = os.path.join(tempdir, 'psub' + args.suffix)
-
-	if args.fifo:
-		os.mkfifo(filepath)
-	else:
-		os.mknod(filepath)
-	proc = subprocess.Popen(['tee', filepath],
-		stdin=stdin, stdout=subprocess.DEVNULL, stderr=stderr)
-	if not args.fifo:
-		proc.wait()
-
-	stdout.write(filepath)
-	# stdout.close()
-	return 0
-
-@aliases.register('test1')
-def _test1(args, stdin=None, stdout=None, stderr=None):
-	@events.on_postcommand
-	def cleanup(cmd, rtn, out, ts):
-		print('postcommand', repr(cmd), repr(rtn), repr(args), file=stderr)
-		events.on_postcommand.remove(cleanup)
-	return 0
-
 aliases['n'] = ['sed', '-z', '$ s/\\n$//']
 
 @events.on_chdir
 def _cdh_on_chdir(olddir, newdir):
-	if olddir in _cdh_on_chdir.history:
-		prev, next = _cdh_on_chdir.history[olddir]
-		_cdh_on_chdir.history[prev][1] = next
-		_cdh_on_chdir.history[next][0] = prev
-	last = _cdh_on_chdir.history[None][0]
-	_cdh_on_chdir.history[olddir] = [last, None]
-	_cdh_on_chdir.history[last][1] = olddir
-	_cdh_on_chdir.history[None][0] = olddir
-_cdh_on_chdir.history = { None: [None, None] }
+	if olddir in _cdh_on_chdir_history:
+		prev, next = _cdh_on_chdir_history[olddir]
+		_cdh_on_chdir_history[prev][1] = next
+		_cdh_on_chdir_history[next][0] = prev
+	last = _cdh_on_chdir_history[None][0]
+	_cdh_on_chdir_history[olddir] = [last, None]
+	_cdh_on_chdir_history[last][1] = olddir
+	_cdh_on_chdir_history[None][0] = olddir
+_cdh_on_chdir_history = { $PWD: [None, None], None: [$PWD, $PWD] }
 
 @aliases.register('cdh')
 def _cdh(args, stdin=None, stdout=None, stderr=None):
@@ -225,7 +172,7 @@ def _cdh(args, stdin=None, stdout=None, stderr=None):
 	parser.add_argument('index', type=int, nargs='?', default=None)
 	args = parser.parse_args(args)
 
-	if len(_cdh_on_chdir.history) == 1:
+	if len(_cdh_on_chdir_history) == 1:
 		print('No previous directories to select.',
 			'You have to cd at least once.', file=stderr)
 		return 0
@@ -238,10 +185,10 @@ def _cdh(args, stdin=None, stdout=None, stderr=None):
 			xs.append(ds[m])
 		return ''.join(reversed(xs))
 
-	node, dirs = _cdh_on_chdir.history[None][1], []
+	node, dirs = _cdh_on_chdir_history[None][1], []
 	while node is not None:
 		dirs.append(node)
-		node = _cdh_on_chdir.history[node][1]
+		node = _cdh_on_chdir_history[node][1]
 
 	import string
 	alphaLen = len(toStr(len(dirs), string.ascii_lowercase))
