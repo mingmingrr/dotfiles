@@ -7,5 +7,5 @@ else
 fi
 
 strip='sed s#/nix/store/[0-9a-z]*-#/📁#'
-unbuffer $prog > >($strip) 2> >($strip 1>&2)
+stdbuf -i0 -o0 -e0 $prog > >($strip) 2> >($strip 1>&2)
 exit $?
