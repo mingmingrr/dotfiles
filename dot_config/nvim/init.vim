@@ -1,10 +1,11 @@
 set nocompatible
 
 let plug_dir = has('nvim') ? stdpath('data') . '/site' : '~/.config/vim'
-if empty(glob(plug_dir . '/autoload/plug.vim'))
+let plug_init = empty(glob(plug_dir . '/autoload/plug.vim'))
+if plug_init
 	let plug_url = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 	silent execute '!curl -fLo '.plug_dir.'/autoload/plug.vim --create-dirs '.plug_url
-	autocmd VimEnter * pluginstall --sync | source $MYVIMRC
+	autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
 call plug#begin(plug_dir.'/plugged')
@@ -36,6 +37,7 @@ call plug#begin(plug_dir.'/plugged')
 	Plug 'dmix/elvish.vim'
 	Plug 'justin2004/vim-apl'
 	Plug 'meatballs/vim-xonsh'
+	Plug 'direnv/direnv.vim'
 
 	if has('nvim')
 		Plug 'nvim-treesitter/nvim-treesitter'
@@ -55,13 +57,15 @@ for scheme in ['onekai', 'blep', 'sonokai', 'monokai-black', 'monokai', 'molokai
 endfor
 highlight Normal guibg=NONE ctermbg=NONE
 highlight NormalNC guibg=NONE ctermbg=NONE
+" highlight IndentGuidesOdd  ctermfg=59 ctermbg=234
+" highlight IndentGuidesEven ctermfg=59 ctermbg=0
 
 set fileencoding=utf-8
 set fileencodings=ucs-bom,utf-8,gbk,cp936,latin-1
 set fileformat=unix
 set fileformats=unix,dos,mac
 
-set wrap
+set nowrap
 " set linebreak
 " set textwidth=500
 set scrolloff=3
@@ -111,7 +115,8 @@ set clipboard=unnamedplus
 set completeopt=menuone,preview,noselect,noinsert
 set autoread
 
-set noswapfile
+set directory^=$HOME/.local/share/vimswap
+set swapfile
 set nobackup
 set nowritebackup
 
@@ -203,6 +208,9 @@ let g:syntastic_mode_map = {
 let g:syntastic_python_checkers = []
 
 let g:rainbow_active = 1
+
+nnoremap <silent> } :<C-u>execute "keepjumps norm! " . v:count1 . "}"<CR>
+nnoremap <silent> { :<C-u>execute "keepjumps norm! " . v:count1 . "{"<CR>
 
 map <F1> <nop>
 map <F9> :Vista!!<CR>
