@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+temp="$(mktemp mathpy.XXXXXXXXXX.sh)"
+trap 'rm -- "$temp"' EXIT
+
+cat > "$temp" <<EOF
+prog = """
+import numpy as np
+from numpy import *
+import scipy as sp
+import scipy.constants as const
+import matplotlib.pyplot as plt
+import numpy.fft as fft
+import scipy.signal as signal
+import pint
+u = pint.UnitRegistry()
+""".strip("\n")
+print("Executing:", *(">>> " + i for i in prog.splitlines()), sep="\n")
+exec(prog)
+EOF
+
+{{ if eq .chezmoi.osRelease.id "nixos" }}
+    nix-shell -p python3 \
+        python3Packages.numpy \
+        python3Packages.scipy \
+        python3Packages.sympy \
+        python3Packages.matplotlib \
+        python3Packages.pillow \
+        python3Packages.pyparsing \
+        python3Packages.tkinter \
+        python3Packages.ipython \
+        python3Packages.pint \
+        --run "ipython --matplotlib=tk -i "'"'"$temp"'"'
+{{ else }}
+    $venv="$XDG_CACHE_DIR/mathpy/venv"
+    if ! test -d $venv; then
+        python3 -m venv "$venv"
+        source "$venv/bin/activate"
+        pip install numpy scipy sympy matplotlib pillow pyparsing tkinter ipython pint
+    fi
+    ipython --matplotlib=tk -i "$temp"
+{{ end }}
