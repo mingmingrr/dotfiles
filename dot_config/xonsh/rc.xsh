@@ -15,24 +15,33 @@ $MULTILINE_PROMPT             = ' '
 # $UPDATE_OS_ENVIRON            = False
 $XONSH_SHOW_TRACEBACK         = True
 
-def update_xontribs():
-	mkdir -p $XDG_CONFIG_HOME/xonsh/xpip
-	xpip -v install --target $XDG_CONFIG_HOME/xonsh/xpip \
-		--upgrade --requirement $XDG_CONFIG_HOME/xonsh/xontribs.txt
-	touch $XDG_CONFIG_HOME/xonsh/xpip/mtime
+import os
+import shutil
+import site
+import subprocess
+import sys
+import tempfile
+import time
+import venv
+import warnings
 
-def _run_config(*_, **__):
-	# import re
-	import os
-	import sys
-	# import itertools
-	import shutil
-	import subprocess
-	import tempfile
-	import time
-	import site
-	import warnings
-	from pathlib import Path
+def update_xontribs(force=False):
+	venv_path = p'$XDG_DATA_HOME/xonsh/venv' / sys.implementation.cache_tag
+	if not venv_path.exists(): venv.create(venv_path, with_pip=True)
+	sys.path.append(str(venv_path / f'lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages'))
+	xontrib_reqs = p'$XDG_CONFIG_HOME/xonsh/xontribs.txt'
+	mtime_marker = venv_path.joinpath('mtime')
+	update = force
+	if not xontrib_reqs.exists(): pass
+	elif not mtime_marker.exists(): update = True
+	elif xontrib_reqs.stat().st_mtime > mtime_marker.stat().st_mtime: update = True
+	elif time.time() > mtime_marker.stat().st_mtime + 14*24*60*60: update = True
+	if not update: return
+	@(venv_path)/bin/pip -v install --upgrade --requirement @(xontrib_reqs)
+	touch @(mtime_marker)
+
+def _interactive_config(*_, **__):
+	source-foreign --sourcer source bash ~/.nix-profile/etc/profile.d/hm-session-vars.sh
 
 	@events.on_postcommand
 	def suppress_warnings(*args, **kwargs):
@@ -40,23 +49,9 @@ def _run_config(*_, **__):
 			category=DeprecationWarning)
 	suppress_warnings()
 
-	xontrib_reqs = p'$XDG_CONFIG_HOME/xonsh/xontribs.txt'
-	if xontrib_reqs.exists():
-		try:
-			xontrib_mtime = p'$XDG_CONFIG_HOME/xonsh/xpip/mtime'.stat().st_mtime
-		except OSError:
-			update_xontribs()
-		else:
-			if xontrib_reqs.stat().st_mtime > xontrib_mtime:
-				update_xontribs()
-			elif time.time() > xontrib_mtime + 14*24*60*60:
-				update_xontribs()
-	site.addsitedir(p'$XDG_CONFIG_HOME/xonsh/xpip')
+	update_xontribs()
 
 	xontrib load coreutils
-	# @events.on_post_init
-	# def load_direnv():
-		# xontrib load direnv
 	xontrib load direnv
 	xontrib load powerline_binding
 	xontrib load fish_completer
@@ -115,17 +110,12 @@ def _run_config(*_, **__):
 
 	@events.on_precommand
 	def set_window_id(cmd=''):
-		if ${...}.get('DISPLAY') and !(which xprop > /dev/null):
-			$WINDOWID = $(xprop -root 32i _NET_ACTIVE_WINDOW).split()[-1]
+		if ${...}.get('DISPLAY') and shutil.which('xprop'):
+			$WINDOWID = subprocess.run(['xprop', '-root', '32i', '_NET_ACTIVE_WINDOW'],
+				text=True, capture_output=True).stdout.strip().split()[-1]
 		else:
 			$WINDOWID = 99999999
 	set_window_id()
-
-	# @events.on_precommand
-	# def set_window_size(cmd=''):
-		# rows, cols = $(stty size).split()
-		# $COLUMNS = int(cols)
-		# $LINES = int(rows)
 
 	@events.on_pre_prompt
 	def _long_cmd_duration():
@@ -148,8 +138,7 @@ def _run_config(*_, **__):
 
 	$LS_COLORS = eval($(dircolors --csh ~/.config/dircolors).strip().split(' ', 2)[2])
 
-# _run_config()
-events.on_ptk_create(_run_config)
+_interactive_config()
 
 aliases['n'] = ['sed', '-z', '$ s/\\n$//']
 

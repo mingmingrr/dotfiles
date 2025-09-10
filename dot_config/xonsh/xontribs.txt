@@ -1,0 +1,11 @@
+pip
+xontrib-broot
+xontrib-cmd-durations
+xontrib-fish-completer
+xontrib-fzf-widgets
+xontrib-term-integrations
+xontrib-psub
+powerline-status
+git+https://github.com/mingmingrr/xonsh-direnv
+git+https://github.com/mingmingrr/xontrib-powerline-binding
+git+https://github.com/mingmingrr/powerline-contrib
