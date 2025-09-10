@@ -15,18 +15,17 @@ EOF
 
 case "$action" in
   "l: lock")
-    xscreensaver-command -lock
+    dm-tool switch-to-greeter
     ;;
   "c: close")
-    xscreensaver-command -lock
-    xscreensaver-command -suspend
+    dm-tool lock
     ;;
   "s: sleep")
-    xscreensaver-command -lock || true
+    dm-tool switch-to-greeter || true
     systemctl suspend
     ;;
   "h: hibernate")
-    xscreensaver-command -lock || true
+    dm-tool switch-to-greeter || true
     systemctl hibernate
     ;;
   "L: Logoff")
