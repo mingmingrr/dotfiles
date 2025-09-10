@@ -4,11 +4,14 @@ template:
   options:
     - missingkey=error
 merge:
-  command: nvim
+  command: bash
   args:
-    - '-d'
-    - '{{ "{{" }} .Destination {{ "}}" }}'
-    - '{{ "{{" }} .Source {{ "}}" }}'
-    - '{{ "{{" }} .Target {{ "}}" }}'
+    - '-c'
+    - |
+      args=({{ `{{ .Destination }}` }} {{ `{{ .Source }}` }})
+      if ! cmp -s {{ `{{ .Source }}` }} {{ `{{ .Target }}` }}; then
+        args+=({{ `{{ .Target }}` }})
+      fi
+      vim -d "${args[@]}"
 edit:
-  command: nvim
+  command: vim
