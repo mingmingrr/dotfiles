@@ -108,6 +108,10 @@ def _interactive_config(*_, **__):
 			buff.text += text
 			buff.cursor_position += len(text)
 
+	@events.on_command_not_found
+	def on_command_not_found(cmd):
+		nix-locate -w bin/@(cmd[0])
+
 	@events.on_precommand
 	def set_window_id(cmd=''):
 		if ${...}.get('DISPLAY') and shutil.which('xprop'):
