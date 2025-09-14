@@ -221,7 +221,7 @@ map <F10> :echo 'hi<' . synIDattr(synID(line('.'),col('.'),1),'name')
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
 
-nmap gD :call CocActionAsync('jumpDefinition')<CR>
+nmap gD :call CocActionAsync('jumpDefinition', 'drop')<CR>
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
