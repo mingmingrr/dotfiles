@@ -8,10 +8,13 @@ merge:
   args:
     - '-c'
     - |
-      args=({{ `{{ .Destination }}` }} {{ `{{ .Source }}` }})
-      if ! cmp -s {{ `{{ .Source }}` }} {{ `{{ .Target }}` }}; then
-        args+=({{ `{{ .Target }}` }})
+      args=()
+      if cmp -s {{ `{{ .Target }}` }} {{ `{{ .Source }}` }}; then
+        args+=('-d' {{ `{{ .Destination }}` }} {{ `{{ .Source }}` }})
+      else
+        args+=('-O' {{ `{{ .Destination }}` }} {{ `{{ .Target }}` }} {{ `{{ .Source }}` }})
+        args+=('-c' 'diffthis | 2wincmd w | setlocal ro | diffthis | 1wincmd w')
       fi
-      vim -d "${args[@]}"
+      vim "${args[@]}"
 edit:
   command: vim
