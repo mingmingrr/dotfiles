@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-temp="$(mktemp mathpy.XXXXXXXXXX.sh)"
+temp="$(mktemp mathpy.XXXXXXXXXX.py)"
 trap 'rm -- "$temp"' EXIT
 
 cat > "$temp" <<EOF
