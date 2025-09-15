@@ -24,6 +24,7 @@ call plug#begin(plug_dir.'/plugged')
 	Plug 'tpope/vim-surround'
 	Plug 'tpope/vim-unimpaired'
 	Plug 'vim-scripts/Improved-AnsiEsc'
+	Plug 'mingmingrr/vim-paragraph-motion'
 
 	Plug 'sainnhe/sonokai'
 	Plug 'morhetz/gruvbox'
@@ -209,8 +210,8 @@ let g:syntastic_python_checkers = []
 
 let g:rainbow_active = 1
 
-nnoremap <silent> } :<C-u>execute "keepjumps norm! " . v:count1 . "}"<CR>
-nnoremap <silent> { :<C-u>execute "keepjumps norm! " . v:count1 . "{"<CR>
+let g:paragraphmotion_keepjumps = 1
+let g:paragraphmotion_skipfolds = 1
 
 map <F1> <nop>
 map <F9> :Vista!!<CR>
