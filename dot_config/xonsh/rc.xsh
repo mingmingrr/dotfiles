@@ -15,6 +15,7 @@ $MULTILINE_PROMPT             = ' '
 # $UPDATE_OS_ENVIRON            = False
 $XONSH_SHOW_TRACEBACK         = True
 
+import logging
 import os
 import shutil
 import site
@@ -41,7 +42,14 @@ def update_xontribs(force=False):
 	touch @(mtime_marker)
 
 def _interactive_config(*_, **__):
-	source-foreign --sourcer source bash ~/.nix-profile/etc/profile.d/hm-session-vars.sh
+	hm_session_vars = p'~/.nix-profile/etc/profile.d/hm-session-vars.sh'.expanduser()
+	if hm_session_vars.exists(): source-foreign --sourcer source bash @(hm_session_vars)
+
+	logging.basicConfig(datefmt='%H:%M:%S', level=logging.INFO, format=
+		'\x1b[30;48;5;207m %(asctime)s.%(msecs)d +%(relativeCreated)dms '
+		'\x1b[38;5;207;104m\ue0b0' '\x1b[30;104m %(levelname)s \x1b[94;107m\ue0b0'
+		'\x1b[30;107m %(filename)s:%(lineno)d:%(funcName)s \x1b[97;49m\ue0b0'
+		'\x1b[0m %(message)s')
 
 	@events.on_postcommand
 	def suppress_warnings(*args, **kwargs):
