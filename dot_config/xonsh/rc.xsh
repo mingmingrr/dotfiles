@@ -63,13 +63,18 @@ def _interactive_config(*_, **__):
 	xontrib load direnv
 	xontrib load powerline_binding
 	xontrib load fish_completer
-	$XONTRIB_CD_LONG_DURATION = 2
-	xontrib load cmd_done
 	$fzf_history_binding = 'c-r'
 	xontrib load fzf-widgets
 	xontrib load term_integration
 	xontrib load psub
 	xontrib load broot
+
+	if shutil.which('xdotool'):
+		$XONTRIB_CD_LONG_DURATION = 2
+		xontrib load cmd_done
+		@events.on_pre_prompt
+		def _long_cmd_duration():
+			long_cmd_duration()
 
 	# $SHELL = sys.argv[0]
 	# $SHELL = shutil.which('xonsh')
@@ -118,7 +123,8 @@ def _interactive_config(*_, **__):
 
 	@events.on_command_not_found
 	def on_command_not_found(cmd):
-		nix-locate -w bin/@(cmd[0])
+		if shutil.which('nix-locate'):
+			nix-locate -w bin/@(cmd[0])
 
 	@events.on_precommand
 	def set_window_id(cmd=''):
@@ -128,10 +134,6 @@ def _interactive_config(*_, **__):
 		else:
 			$WINDOWID = 99999999
 	set_window_id()
-
-	@events.on_pre_prompt
-	def _long_cmd_duration():
-		long_cmd_duration()
 
 	@events.on_pre_prompt
 	def _history_pull():
@@ -146,7 +148,9 @@ def _interactive_config(*_, **__):
 	if 'TMUX' in ${...}:
 		@events.on_precommand
 		def tmux_refresh_display(cmd):
-			$DISPLAY = $(tmux showenv DISPLAY).split('=', 1)[1].strip()
+			display = $(tmux showenv DISPLAY).split('=', 1)
+			if len(display) == 2:
+				$DISPLAY = display[1].strip()
 
 	$LS_COLORS = eval($(dircolors --csh ~/.config/dircolors).strip().split(' ', 2)[2])
 
