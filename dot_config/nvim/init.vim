@@ -10,7 +10,6 @@ endif
 
 call plug#begin(plug_dir.'/plugged')
 	Plug 'AndrewRadev/linediff.vim'
-	Plug 'airblade/vim-gitgutter'
 	Plug 'jeetsukumaran/vim-indentwise'
 	Plug 'junegunn/vim-easy-align'
 	Plug 'luochen1990/rainbow'
@@ -19,6 +18,7 @@ call plug#begin(plug_dir.'/plugged')
 	Plug 'rhlobo/vim-super-retab'
 	Plug 'salsifis/vim-transpose'
 	Plug 'tpope/vim-abolish'
+	Plug 'tpope/vim-fugitive'
 	Plug 'tpope/vim-repeat'
 	Plug 'tpope/vim-sleuth'
 	Plug 'tpope/vim-surround'
@@ -127,6 +127,7 @@ set novisualbell
 set timeoutlen=500
 
 set foldopen-=block
+set foldopen-=search
 set foldmethod=indent
 set foldlevelstart=20
 
