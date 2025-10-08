@@ -377,6 +377,9 @@ handle_fallback() {
 	exit 1
 }
 
+# if [[ -n "$RANGER_GREP" ]]; then
+	# grep --color=always --line-number --context=2 --perl-regexp --ignore-case $RANGER_GREP -- "${FILE_PATH}" && exit 0
+# fi
 
 MIMETYPE="$( file --dereference --brief --mime-type -- "${FILE_PATH}" )"
 if [[ "${PV_IMAGE_ENABLED}" == 'True' ]]; then
