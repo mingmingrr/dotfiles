@@ -179,6 +179,8 @@ handle_image() {
 			ffmpeg -i "${FILE_PATH}" -map 0:v -map -0:V -c copy "${IMAGE_CACHE_PATH}" && exit 6
 			# Get frame 10% into video
 			ffmpegthumbnailer -i "${FILE_PATH}" -o "${IMAGE_CACHE_PATH}" -s 0 && exit 6
+			fetchtime="$(ffprobe -v quiet -of csv=p=0 -show_entries format=duration "${FILE_PATH}" | awk '{ print $1 * 0.1 }')" \
+				&& ffmpeg -i "${FILE_PATH}" -ss "$fetchtime" -vframes 1 -v quiet "${IMAGE_CACHE_PATH}" && exit 6
 			exit 1;;
 
 		## PDF
